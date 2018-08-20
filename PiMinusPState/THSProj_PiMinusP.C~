@@ -1,0 +1,97 @@
+/**
+ * \class THSProj_PiMinusP
+ * 
+ * Template final class .
+ * 
+ * Users should create their own analysis specific project classes.
+ * 
+ */
+
+
+
+#include "TDatabasePDG.h"
+#include "THSProj_PiMinusP.h"
+#include <algorithm>
+
+
+THSProj_PiMinusP::THSProj_PiMinusP(){
+  SetVerbose(1);
+  CheckCombi(); //comment out to remove messages
+  
+  //Set final state detected particles
+  //AddParticle(particle,true/false you want to write in final vector, genID for linking to generated truth value)
+  //Note if particle is added to final with a valid genID it will be used
+  //to determine the correct permutation of the simulated event
+  AddParticle(&fPhoton,kTRUE,-1);
+  AddParticle(&fPim,kTRUE,-1);
+  AddParticle(&fProton,kTRUE,-1);
+  AddParticle(&fProtonSpec,kTRUE,-1);
+
+  //Set final state parents
+  
+  
+  
+  TString PID("NONE"); //set this to which particles you want to id via pdg code alone, or set it in individual AddTopology
+  TString INCLUSIVE("");//set this to which particles you want reaction to be inclusive of, or set it in individual AddTopology "ALL"=> completely inclusive
+
+  //include topology for analysis and get index
+  AddTopology("pi-:proton",
+             bind(&THSProj_PiMinusP::Init_Iter0, this),
+             bind(&THSProj_PiMinusP::Topo_0, this),
+             PID,INCLUSIVE);
+
+  
+  
+  THSFinalState::InitFS();
+}
+
+void THSProj_PiMinusP::FileStart(){
+  //May be called when a new file is opened
+  
+}
+
+//Define topology Iterator functions
+void THSProj_PiMinusP::Init_Iter0(){
+  //THSParticle iterator initialisation
+  //For topology pi-:proton
+
+   AutoIter(); //Let finalstate try and work out the iterattor for you, you can remove this if you want to do it yourself
+}
+// void THSProj_PiMinusP::Init_IterX(){
+//  THSParticleIter* diter=CreateParticleIter(fTID_X,&fVecY,NPARTICLES);
+//  ...
+// }
+//Define topology functions
+void THSProj_PiMinusP::Topo_0(){
+  //For topology pi-:proton
+
+  //Reconstruct missing or combined particles
+  //HSLorentzVector miss=fBeam+fTarget-fElectron.P4()...;
+  //fMissMass2=miss.M2();
+  //fMissMass=miss.M();
+}
+// void THSProj_PiMinusP::Topo_X(){
+// }
+
+void THSProj_PiMinusP::Kinematics(){
+  //Do calculations if Good Event
+
+}
+//////////////////////////////////////////////////
+/// Define conditions for track to be considered
+/// good in event. Adding conditions on junk tracks
+///  can greatly reduce combitorials etc.
+/// kFALSE=> track ignored completely
+Bool_t THSProj_PiMinusP::CheckParticle(THSParticle* part){
+  return kTRUE;
+}
+
+void THSProj_PiMinusP::FinalStateOutTree(TTree* tree){
+  THSFinalState::fFinalTree=tree;
+  //tree->Branch("Final",&fFinal);//If you want to save the final THSParticles
+  tree->Branch("MissMass",&fMissMass,"MissMass/D");
+  tree->Branch("Topo",&fTopoID,"Topo/I");
+  tree->Branch("NPerm",&fNPerm,"NPerm/I");
+  tree->Branch("NDet",&fNDet,"NDet/I");
+
+}
